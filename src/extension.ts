@@ -35,6 +35,8 @@ import { promptUserForConfigs } from "./user_config_prompts";
 import { DartPackageFileContentProvider } from "./providers/dart_package_file_content_provider";
 import { ClosingLabelsDecorations } from "./decorations/closing_labels_decorations";
 import { DebugConfigProvider, DART_CLI_DEBUG_TYPE, FLUTTER_DEBUG_TYPE } from "./providers/debug_config_provider";
+import { TestContentProvider } from "./providers/test_content_provider";
+import { Uri } from "vscode";
 
 const DART_MODE: vs.DocumentFilter[] = [{ language: "dart", scheme: "file" }, { language: "dart", scheme: "dart-package" }];
 const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }, { language: "html", scheme: "dart-package" }];
@@ -183,6 +185,7 @@ export function activate(context: vs.ExtensionContext) {
 	context.subscriptions.push(vs.languages.registerWorkspaceSymbolProvider(new DartWorkspaceSymbolProvider(analyzer)));
 	context.subscriptions.push(vs.languages.setLanguageConfiguration(DART_MODE[0].language, new DartLanguageConfiguration()));
 	context.subscriptions.push(vs.workspace.registerTextDocumentContentProvider("dart-package", new DartPackageFileContentProvider()));
+	context.subscriptions.push(vs.workspace.registerTextDocumentContentProvider("dart-test", new TestContentProvider()));
 	context.subscriptions.push(new AnalyzerStatusReporter(analyzer, sdks, analytics));
 
 	// Set up diagnostics.
@@ -284,6 +287,10 @@ export function activate(context: vs.ExtensionContext) {
 		vs.workspace.openTextDocument(filePath).then((document) => {
 			vs.window.showTextDocument(document, { preview: true });
 		}, (error) => util.logError);
+	}));
+
+	context.subscriptions.push(vs.commands.registerCommand("dart.test", () => {
+		vs.commands.executeCommand("vscode.previewHtml", Uri.parse("dart-test:test"));
 	}));
 
 	// Perform any required project upgrades.

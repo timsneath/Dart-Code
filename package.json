@@ -76,6 +76,11 @@
 		],
 		"commands": [
 			{
+				"command": "dart.test",
+				"title": "Dart HTML View Test",
+				"category": "Dart"
+			},
+			{
 				"command": "pub.get",
 				"title": "Pub Get",
 				"category": "Dart",
@@ -207,6 +212,10 @@
 		],
 		"menus": {
 			"commandPalette": [
+				{
+					"command": "dart.test",
+					"when": "dart-code:dartProjectLoaded"
+				},
 				{
 					"command": "pub.get",
 					"when": "dart-code:dartProjectLoaded"
