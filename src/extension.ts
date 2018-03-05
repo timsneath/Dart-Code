@@ -45,6 +45,7 @@ import { checkForSdkUpdates } from "./sdk/update_check";
 import { setUpHotReloadOnSave } from "./flutter/hot_reload_save_handler";
 import { findPackageRoots } from "./analysis/utils";
 import { flutterPath, dartVMPath, analyzerSnapshotPath, handleMissingSdks, findSdks } from "./sdk/utils";
+import { FlutterOutlineProvider } from "./views/flutter_outline_view";
 
 const DART_MODE: vs.DocumentFilter[] = [{ language: "dart", scheme: "file" }];
 const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }];
@@ -229,6 +230,9 @@ export function activate(context: vs.ExtensionContext, isRestart: boolean = fals
 			context.subscriptions.push(vs.languages.registerDocumentSymbolProvider(filter, documentSymbolProvider));
 		});
 
+		if (analyzer.capabilities.supportsFlutterOutline)
+			context.subscriptions.push(vs.window.registerTreeDataProvider("dartFlutterOutline", new FlutterOutlineProvider(analyzer)));
+
 		context.subscriptions.push(new OpenFileTracker(analyzer));
 	});
 
@@ -255,7 +259,7 @@ export function activate(context: vs.ExtensionContext, isRestart: boolean = fals
 	// Register misc commands.
 	context.subscriptions.push(new TypeHierarchyCommand(context, analyzer));
 
-	// Register our view providers.
+	// Register our dependency tree provider.
 	const dartPackagesProvider = new DartPackagesProvider();
 	dartPackagesProvider.setWorkspaces(util.getDartWorkspaceFolders());
 	context.subscriptions.push(dartPackagesProvider);
