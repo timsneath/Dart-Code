@@ -1,8 +1,15 @@
 import * as as from "./analysis/analysis_server_types";
 import * as fs from "fs";
 import * as https from "https";
+<<<<<<< HEAD
 import * as os from "os";
 import * as path from "path";
+=======
+import * as as from "./analysis/analysis_server_types";
+import { env, workspace, window, Position, Range, TextDocument, commands, Uri, MessageItem } from "vscode";
+import { config } from "./config";
+import { PackageMap } from "./debug/utils";
+>>>>>>> More work on removing references to WorkspaceFolders and some basic tests
 import * as semver from "semver";
 import { commands, env, MessageItem, Position, Range, TextDocument, Uri, window, workspace, WorkspaceFolder } from "vscode";
 import { config } from "./config";

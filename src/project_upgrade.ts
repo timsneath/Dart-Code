@@ -1,9 +1,11 @@
 import * as vs from "vscode";
 
-export function upgradeProject(workspaces: vs.WorkspaceFolder[]) {
-	for (const workspace of workspaces) {
-		remove_legacy_debug_settings(workspace);
-		convert_legacy_debug_types(workspace);
+export function upgradeProjects() {
+	if (vs.workspace.workspaceFolders) {
+		for (const workspace of vs.workspace.workspaceFolders) {
+			remove_legacy_debug_settings(workspace);
+			convert_legacy_debug_types(workspace);
+		}
 	}
 }
 

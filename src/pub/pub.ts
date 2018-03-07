@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
-import { window, commands, Uri, WorkspaceFolder } from "vscode";
+import { window, commands, Uri } from "vscode";
 import { ProjectType } from "../utils";
 
 export function isPubGetProbablyRequired(folderUri: Uri): boolean {

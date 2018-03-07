@@ -57,6 +57,7 @@ const codeVersions = ["*", "insiders"];
 const sdkPaths = process.env.PATH_UNSTABLE ? [null, process.env.PATH_UNSTABLE] : [null];
 for (const codeVersion of codeVersions) {
 	for (const sdkPath of sdkPaths) {
+		runTests("multi_project", "", sdkPath, codeVersion);
 		runTests("general", "hello_world", sdkPath, codeVersion);
 		runTests("flutter", "flutter_hello_world", sdkPath, codeVersion);
 	}

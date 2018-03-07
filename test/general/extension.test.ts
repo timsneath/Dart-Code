@@ -1,6 +1,7 @@
 import * as assert from "assert";
 import * as vs from "vscode";
 import { Sdks } from "../../src/utils";
+import { projectFolders } from "../../src/project";
 
 const isWin = /^win/.test(process.platform);
 const ext = vs.extensions.getExtension("Dart-Code.dart-code");
@@ -14,6 +15,14 @@ describe("Test environment", () => {
 		assert.ok(
 			wfs[0].uri.path.endsWith("hello_world"),
 			wfs[0].uri.path + " doesn't end with hello_world",
+		);
+	});
+	it("has detected the correct project folders", () => {
+		const pfs = projectFolders;
+		assert.equal(pfs.length, 1);
+		assert.ok(
+			pfs[0].path.endsWith("hello_world"),
+			pfs[0].path + " doesn't end with hello_world",
 		);
 	});
 });

@@ -11,16 +11,24 @@ describe("Test environment", () => {
 		const wfs = vs.workspace.workspaceFolders;
 		assert.equal(wfs.length, 1);
 		assert.ok(
-			wfs[0].uri.path.endsWith("flutter_hello_world"),
-			wfs[0].uri.path + " doesn't end with flutter_hello_world",
+			wfs[0].uri.path.endsWith("test_projects"),
+			wfs[0].uri.path + " doesn't end with test_projects",
 		);
 	});
 	it("has detected the correct project folders", () => {
 		const pfs = projectFolders;
-		assert.equal(pfs.length, 1);
+		assert.equal(pfs.length, 3);
 		assert.ok(
-			pfs[0].path.endsWith("flutter_hello_world"),
-			pfs[0].path + " doesn't end with flutter_hello_world",
+			pfs[0].path.endsWith("test_projects"),
+			pfs[0].path + " doesn't end with test_projects",
+		);
+		assert.ok(
+			pfs[1].path.endsWith("hello_world"),
+			pfs[1].path + " doesn't end with hello_world",
+		);
+		assert.ok(
+			pfs[2].path.endsWith("flutter_hello_world"),
+			pfs[2].path + " doesn't end with flutter_hello_world",
 		);
 	});
 });

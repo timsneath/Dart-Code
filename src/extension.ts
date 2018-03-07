@@ -37,7 +37,7 @@ import { ServerStatusNotification } from "./analysis/analysis_server_types";
 import { showUserPrompts } from "./user_prompts";
 import { SnippetCompletionItemProvider } from "./providers/snippet_completion_item_provider";
 import { TypeHierarchyCommand } from "./commands/type_hierarchy";
-import { upgradeProject } from "./project_upgrade";
+import { upgradeProjects } from "./project_upgrade";
 
 const DART_MODE: vs.DocumentFilter[] = [{ language: "dart", scheme: "file" }];
 const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }];
@@ -207,7 +207,7 @@ export function activate(context: vs.ExtensionContext) {
 	context.subscriptions.push(onDidChangeProjectFolders((f) => {
 		recalculateAnalysisRoots();
 	}));
-	if (vs.workspace.workspaceFolders)
+	if (vs.workspace.workspaceFolders && vs.workspace.workspaceFolders.length > 0)
 		recalculateAnalysisRoots();
 
 	// Hook editor changes to send updated contents to analyzer.
@@ -327,9 +327,8 @@ export function activate(context: vs.ExtensionContext) {
 	}));
 
 	// Perform any required project upgrades.
-	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => upgradeProject(f.added)));
-	if (vs.workspace.workspaceFolders)
-		upgradeProject(vs.workspace.workspaceFolders);
+	context.subscriptions.push(onDidChangeProjectFolders((f) => upgradeProjects()));
+	upgradeProjects();
 
 	// Prompt user for any special config we might want to set.
 	showUserPrompts(context);
