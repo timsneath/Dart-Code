@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as util from "./utils";
-import { Uri, workspace, window, Event, EventEmitter } from "vscode";
+import { Uri, workspace, window, Event, EventEmitter, WorkspaceFolderPickOptions, QuickPickOptions } from "vscode";
 
 const onDidChangeTreeDataEmitter: EventEmitter<ProjectFoldersChangeEvent> = new EventEmitter<ProjectFoldersChangeEvent>();
 export const onDidChangeProjectFolders: Event<ProjectFoldersChangeEvent> = onDidChangeTreeDataEmitter.event;
@@ -49,7 +49,12 @@ export function getProjectFolder(resource: Uri): Uri {
 	return null;
 }
 
-// TODO: showWorkspaceFolderPick
+export async function showProjectFolderPick(options?: QuickPickOptions): Promise<Uri | undefined> {
+	// TODO: Make this look nicer when Code supports it
+	// https://github.com/Microsoft/vscode/issues/45214
+	const f = await window.showQuickPick(projectFolders.map((f) => f.fsPath), options);
+	return Uri.file(f);
+}
 
 export interface ProjectFoldersChangeEvent {
 	readonly added: Uri[];

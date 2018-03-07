@@ -6,6 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import * as util from "../utils";
 import * as vs from "vscode";
+<<<<<<< HEAD
 import { Analytics } from "../analytics";
 import { config } from "../config";
 import { dartPubPath, flutterPath, isFlutterProject, ProjectType, Sdks } from "../utils";
@@ -14,6 +15,9 @@ import { FlutterLaunchRequestArguments, isWin } from "../debug/utils";
 import { isProjectFolder } from "../project";
 import { ProgressLocation, Uri } from "vscode";
 import { SdkManager } from "../sdk/sdk_manager";
+=======
+import { isProjectFolder, showProjectFolderPick } from "../project";
+>>>>>>> Add a projectFolder quick pick
 
 const flutterNameRegex = new RegExp("^[a-z][a-z0-9_]*$");
 
@@ -90,11 +94,11 @@ export class SdkCommands {
 		const folderPromise =
 			folder
 				? Promise.resolve(folder)
-				// TODO: Can we get this filtered?
-				// https://github.com/Microsoft/vscode/issues/39132
-				: vs.window.showWorkspaceFolderPick({ placeHolder }).then((f) => f && isProjectFolder(f.uri) && f.uri);
+				: showProjectFolderPick({ placeHolder });
 
 		return folderPromise.then((f) => {
+			if (!f)
+				return 1; // TODO: Handle no folder selected.
 			const projectPath = dartWorkspace.getProjectFolder(f).fsPath;
 			const shortPath = path.join(path.basename(f.fsPath), path.relative(f.fsPath, projectPath));
 			return handler(f.fsPath, command, shortPath);
