@@ -33,15 +33,15 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 	}
 
 	public resolveDebugConfiguration(folder: WorkspaceFolder | undefined, debugConfig: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
-		const isFlutter = isFlutterProject(
-			window.activeTextEditor && window.activeTextEditor.document
-				? getProjectFolder(window.activeTextEditor.document.uri)
-				: folder.uri);
+		const projectFolder = window.activeTextEditor && window.activeTextEditor.document
+			? getProjectFolder(window.activeTextEditor.document.uri)
+			: folder.uri;
+		const isFlutter = isFlutterProject(projectFolder);
 		// TODO: This cast feels nasty?
 		this.setupDebugConfig(folder, debugConfig as any as FlutterLaunchRequestArguments, isFlutter, this.deviceManager && this.deviceManager.currentDevice ? this.deviceManager.currentDevice.id : null);
 
 		if (isFlutter)
-			debugConfig.program = debugConfig.program || "${workspaceRoot}/lib/main.dart"; // Set Flutter default path.
+			debugConfig.program = debugConfig.program || path.join(projectFolder.fsPath, "lib", "main.dart"); // Set Flutter default path.
 		else if (!debugConfig.program) {
 			// For Dart projects that don't have a program, we can't launch, so we perform set type=null which causes launch.json
 			// to open.
