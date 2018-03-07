@@ -45,6 +45,23 @@
 			]
 		},
 		{
+			"name": "Launch Tests (Multi-Project)",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"${workspaceRoot}/test/test_projects",
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--extensionTestsPath=${workspaceRoot}/out/test/multi_project"
+			],
+			"stopOnEntry": false,
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/test/**/*.js"
+			],
+			"preLaunchTask": "npm: watch"
+		},
+		{
 			"name": "Launch Tests (General)",
 			"type": "extensionHost",
 			"request": "launch",

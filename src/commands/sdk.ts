@@ -6,18 +6,14 @@ import * as os from "os";
 import * as path from "path";
 import * as util from "../utils";
 import * as vs from "vscode";
-<<<<<<< HEAD
 import { Analytics } from "../analytics";
 import { config } from "../config";
 import { dartPubPath, flutterPath, isFlutterProject, ProjectType, Sdks } from "../utils";
 import { FlutterDeviceManager } from "../flutter/device_manager";
 import { FlutterLaunchRequestArguments, isWin } from "../debug/utils";
-import { isProjectFolder } from "../project";
+import { isProjectFolder, showProjectFolderPick } from "../project";
 import { ProgressLocation, Uri } from "vscode";
 import { SdkManager } from "../sdk/sdk_manager";
-=======
-import { isProjectFolder, showProjectFolderPick } from "../project";
->>>>>>> Add a projectFolder quick pick
 
 const flutterNameRegex = new RegExp("^[a-z][a-z0-9_]*$");
 

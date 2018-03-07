@@ -23,12 +23,12 @@ describe("Test environment", () => {
 			pfs[0].path + " doesn't end with test_projects",
 		);
 		assert.ok(
-			pfs[1].path.endsWith("hello_world"),
-			pfs[1].path + " doesn't end with hello_world",
+			pfs[1].path.endsWith("flutter_hello_world"),
+			pfs[1].path + " doesn't end with flutter_hello_world",
 		);
 		assert.ok(
-			pfs[2].path.endsWith("flutter_hello_world"),
-			pfs[2].path + " doesn't end with flutter_hello_world",
+			pfs[2].path.endsWith("hello_world"),
+			pfs[2].path + " doesn't end with hello_world",
 		);
 	});
 });

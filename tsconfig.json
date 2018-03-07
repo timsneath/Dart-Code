@@ -8,11 +8,11 @@
 		],
 		"sourceMap": true,
 		"rootDir": ".",
+		"alwaysStrict": true,
 		"noImplicitAny": true,
 		"noImplicitThis": true,
-		"alwaysStrict": true,
 		"strictFunctionTypes": true,
-		"strictPropertyInitialization": true
+		"strictPropertyInitialization": true,
 	},
 	"exclude": [
 		"node_modules",

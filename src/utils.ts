@@ -1,19 +1,12 @@
 import * as as from "./analysis/analysis_server_types";
 import * as fs from "fs";
 import * as https from "https";
-<<<<<<< HEAD
 import * as os from "os";
 import * as path from "path";
-=======
-import * as as from "./analysis/analysis_server_types";
-import { env, workspace, window, Position, Range, TextDocument, commands, Uri, MessageItem } from "vscode";
-import { config } from "./config";
-import { PackageMap } from "./debug/utils";
->>>>>>> More work on removing references to WorkspaceFolders and some basic tests
 import * as semver from "semver";
 import { commands, env, MessageItem, Position, Range, TextDocument, Uri, window, workspace, WorkspaceFolder } from "vscode";
 import { config } from "./config";
-import { isProjectFolder, projectFolders } from "./project";
+import { isProjectFolder, projectFolders, isProjectFolderUri } from "./project";
 import { PackageMap } from "./debug/utils";
 
 const isWin = /^win/.test(process.platform);
@@ -31,7 +24,7 @@ export const DART_DOWNLOAD_URL = "https://www.dartlang.org/install";
 export const FLUTTER_DOWNLOAD_URL = "https://flutter.io/setup/";
 
 export function isFlutterProject(folder: Uri): boolean {
-	return isProjectFolder(folder) && referencesFlutterSdk(folder.fsPath);
+	return isProjectFolderUri(folder) && referencesFlutterSdk(folder.fsPath);
 }
 
 function referencesFlutterSdk(folder: string): boolean {
