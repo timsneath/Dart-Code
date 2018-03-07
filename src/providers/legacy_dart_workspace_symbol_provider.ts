@@ -71,7 +71,7 @@ export class LegacyDartWorkspaceSymbolProvider implements WorkspaceSymbolProvide
 		//   2. In our project.
 		const isPrivate = result.path[0].name.startsWith("_") || result.path[1].name.startsWith("_");
 
-		return isWithinWorkspace(result.location.file) || !isPrivate;
+		return isWithinWorkspace(Uri.file(result.location.file)) || !isPrivate;
 	}
 
 	private convertResult(result: as.SearchResult): SymbolInformation {

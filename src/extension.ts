@@ -1,44 +1,45 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vs from "vscode";
-import { WorkspaceFolder } from "vscode";
-import { ServerStatusNotification } from "./analysis/analysis_server_types";
-import { Analyzer } from "./analysis/analyzer";
 import { Analytics } from "./analytics";
+import { Analyzer } from "./analysis/analyzer";
 import { AnalyzerStatusReporter } from "./analyzer_status_reporter";
-import { DebugCommands } from "./commands/debug";
-import { EditCommands } from "./commands/edit";
-import { SdkCommands } from "./commands/sdk";
-import { TypeHierarchyCommand } from "./commands/type_hierarchy";
-import { config } from "./config";
-import { ClosingLabelsDecorations } from "./decorations/closing_labels_decorations";
-import { FileChangeHandler } from "./file_change_handler";
-import { FlutterDaemon } from "./flutter/flutter_daemon";
-import { OpenFileTracker } from "./open_file_tracker";
-import { upgradeProject } from "./project_upgrade";
 import { AssistCodeActionProvider } from "./providers/assist_code_action_provider";
+import { ClosingLabelsDecorations } from "./decorations/closing_labels_decorations";
+import { config } from "./config";
 import { DartCompletionItemProvider } from "./providers/dart_completion_item_provider";
 import { DartDefinitionProvider } from "./providers/dart_definition_provider";
 import { DartDiagnosticProvider } from "./providers/dart_diagnostic_provider";
+import { DartDocumentHighlightProvider } from "./providers/dart_highlighting_provider";
 import { DartDocumentSymbolProvider } from "./providers/dart_document_symbol_provider";
 import { DartFormattingEditProvider } from "./providers/dart_formatting_edit_provider";
-import { DartDocumentHighlightProvider } from "./providers/dart_highlighting_provider";
 import { DartHoverProvider } from "./providers/dart_hover_provider";
 import { DartLanguageConfiguration } from "./providers/dart_language_configuration";
+import { DartPackagesProvider } from "./views/packages_view";
 import { DartReferenceProvider } from "./providers/dart_reference_provider";
 import { DartRenameProvider } from "./providers/dart_rename_provider";
 import { DartTypeFormattingEditProvider } from "./providers/dart_type_formatting_edit_provider";
 import { DartWorkspaceSymbolProvider } from "./providers/dart_workspace_symbol_provider";
+import { DebugCommands } from "./commands/debug";
 import { DebugConfigProvider } from "./providers/debug_config_provider";
+import { EditCommands } from "./commands/edit";
+import { FileChangeHandler } from "./file_change_handler";
 import { FixCodeActionProvider } from "./providers/fix_code_action_provider";
+import { FlutterDaemon } from "./flutter/flutter_daemon";
+import { isFlutterProject } from "./utils";
+import { isPubGetProbablyRequired, promptToRunPubGet } from "./pub/pub";
 import { LegacyDartWorkspaceSymbolProvider } from "./providers/legacy_dart_workspace_symbol_provider";
 import { LegacyDebugConfigProvider } from "./providers/legacy_debug_config_provider";
-import { SnippetCompletionItemProvider } from "./providers/snippet_completion_item_provider";
-import { isPubGetProbablyRequired, promptToRunPubGet } from "./pub/pub";
+import { OpenFileTracker } from "./open_file_tracker";
+import { projectFolders, getProjectFolder } from "./project";
+import { SdkCommands } from "./commands/sdk";
+import { ServerStatusNotification } from "./analysis/analysis_server_types";
 import { showUserPrompts } from "./user_prompts";
-import { isFlutterProject } from "./utils";
+import { SnippetCompletionItemProvider } from "./providers/snippet_completion_item_provider";
+import { TypeHierarchyCommand } from "./commands/type_hierarchy";
+import { upgradeProject } from "./project_upgrade";
+import { WorkspaceFolder } from "vscode";
 import * as util from "./utils";
-import { DartPackagesProvider } from "./views/packages_view";
 
 const DART_MODE: vs.DocumentFilter[] = [{ language: "dart", scheme: "file" }];
 const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }];
@@ -59,6 +60,7 @@ let analyzerSettings: string = getAnalyzerSettings();
 export function activate(context: vs.ExtensionContext) {
 	const extensionStartTime = new Date();
 	const sdks = util.findSdks();
+
 	analytics = new Analytics(sdks);
 	if (sdks.dart == null) {
 		// HACK: In order to provide a more useful message if the user was trying to fun flutter.newProject
@@ -192,7 +194,7 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Snippets are language-specific
 	context.subscriptions.push(vs.languages.registerCompletionItemProvider(DART_MODE, new SnippetCompletionItemProvider("snippets/dart.json", (_) => true)));
-	context.subscriptions.push(vs.languages.registerCompletionItemProvider(DART_MODE, new SnippetCompletionItemProvider("snippets/flutter.json", (uri) => isFlutterProject(vs.workspace.getWorkspaceFolder(uri)))));
+	context.subscriptions.push(vs.languages.registerCompletionItemProvider(DART_MODE, new SnippetCompletionItemProvider("snippets/flutter.json", (uri) => isFlutterProject(getProjectFolder(uri)))));
 
 	context.subscriptions.push(vs.languages.setLanguageConfiguration(DART_MODE[0].language, new DartLanguageConfiguration()));
 	const statusReporter = new AnalyzerStatusReporter(analyzer, sdks, analytics);
@@ -249,8 +251,8 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Set up debug stuff.
 	// Remove all this when migrating to debugAdapterExecutable!
-	context.subscriptions.push(vs.commands.registerCommand("dart.getDebuggerExecutable", (workspacePath: string) => {
-		const entry = (path && isFlutterProject(vs.workspace.getWorkspaceFolder(vs.Uri.parse(workspacePath))))
+	context.subscriptions.push(vs.commands.registerCommand("dart.getDebuggerExecutable", (path: string) => {
+		const entry = (path && isFlutterProject(getProjectFolder(vs.Uri.parse(path))))
 			? context.asAbsolutePath("./out/src/debug/flutter_debug_entry.js")
 			: context.asAbsolutePath("./out/src/debug/dart_debug_entry.js");
 
@@ -311,11 +313,11 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Register our view providers.
 	const dartPackagesProvider = new DartPackagesProvider();
-	dartPackagesProvider.setWorkspaces(util.getDartWorkspaceFolders());
+	dartPackagesProvider.setWorkspaces(projectFolders);
 	context.subscriptions.push(dartPackagesProvider);
 	vs.window.registerTreeDataProvider("dartPackages", dartPackagesProvider);
 	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => {
-		dartPackagesProvider.setWorkspaces(util.getDartWorkspaceFolders());
+		dartPackagesProvider.setWorkspaces(projectFolders);
 	}));
 
 	context.subscriptions.push(vs.commands.registerCommand("dart.package.openFile", (filePath) => {
@@ -327,8 +329,9 @@ export function activate(context: vs.ExtensionContext) {
 	}));
 
 	// Perform any required project upgrades.
-	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => upgradeProject(f.added.filter(util.isDartWorkspaceFolder))));
-	upgradeProject(util.getDartWorkspaceFolders());
+	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => upgradeProject(f.added)));
+	if (vs.workspace.workspaceFolders)
+		upgradeProject(vs.workspace.workspaceFolders);
 
 	// Prompt user for any special config we might want to set.
 	showUserPrompts(context);
@@ -338,8 +341,8 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Prompt for pub get if required
 	function checkForPackages() {
-		const folders = util.getDartWorkspaceFolders();
-		const foldersRequiringPackageFetch = folders.filter((ws: WorkspaceFolder) => config.for(ws.uri).promptToFetchPackages).filter(isPubGetProbablyRequired);
+		const folders = projectFolders;
+		const foldersRequiringPackageFetch = folders.filter((f) => config.for(f).promptToFetchPackages).filter(isPubGetProbablyRequired);
 		if (foldersRequiringPackageFetch.length > 0)
 			promptToRunPubGet(foldersRequiringPackageFetch);
 	}
@@ -354,66 +357,12 @@ export function activate(context: vs.ExtensionContext) {
 }
 
 function recalculateAnalysisRoots() {
-	let newRoots: string[] = [];
-	util.getDartWorkspaceFolders().forEach((f) => {
-		newRoots = newRoots.concat(findPackageRoots(f.uri.fsPath));
-	});
-	analysisRoots = newRoots;
+	analysisRoots = projectFolders.map((f) => f.fsPath);
 
 	analyzer.analysisSetAnalysisRoots({
 		excluded: [],
 		included: analysisRoots,
 	});
-}
-
-function findPackageRoots(root: string): string[] {
-	// For repos with code inside a "packages" folder, the analyzer doesn't resolve package paths
-	// correctly. Until this is fixed in the analyzer, detect this and perform a workaround.
-	// This introduces other issues, so don't do it unless we know we need to (eg. flutter repo).
-	//
-	// See also:
-	//   https://github.com/Dart-Code/Dart-Code/issues/275 - Original issue (flutter repo not resolving correctly)
-	//   https://github.com/Dart-Code/Dart-Code/issues/280 - Issue introduced by the workaround
-	//   https://github.com/dart-lang/sdk/issues/29414 - Analyzer issue (where the real fix will be)
-
-	if (!isPackageRootWorkaroundRequired(root))
-		return [root];
-
-	console.log("Workspace root appears to need package root workaround...");
-
-	const roots = getChildren(root, 3);
-
-	if (roots.length === 0 || fs.existsSync(path.join(root, "pubspec.yaml")))
-		roots.push(root);
-
-	return roots;
-
-	function getChildren(parent: string, numLevels: number): string[] {
-		let packageRoots: string[] = [];
-		const dirs = fs.readdirSync(parent).filter((item) => fs.statSync(path.join(parent, item)).isDirectory());
-		dirs.forEach((folder) => {
-			const folderPath = path.join(parent, folder);
-			// If this is a package, add it. Else, recurse (if we still have levels to go).
-			if (fs.existsSync(path.join(folderPath, "pubspec.yaml"))) {
-				packageRoots.push(folderPath);
-			} else if (numLevels > 1)
-				packageRoots = packageRoots.concat(getChildren(folderPath, numLevels - 1));
-		});
-		return packageRoots;
-	}
-}
-
-function isPackageRootWorkaroundRequired(root: string): boolean {
-	// It's hard to tell if the packages folder is actually a real one (--packages-dir) or
-	// this is a repo like Flutter, so we'll use the presence of a file we know exists only
-	// in the flutter one. This is very fragile, but hopefully a very temporary workaround.
-	return fs.existsSync(path.join(root, "packages", ".gitignore"))
-		|| (
-			// Since Flutter repro removed the .gitignore, also check if there are any non-symlinks.
-			fs.existsSync(path.join(root, "packages"))
-			&& !!fs.readdirSync(path.join(root, "packages"))
-				.find((d) => path.join(root, "packages", d) === fs.realpathSync(path.join(root, "packages", d)))
-		);
 }
 
 function handleConfigurationChange(sdks: util.Sdks) {

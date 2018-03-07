@@ -3,8 +3,8 @@ import * as fs from "fs";
 import { window, commands, Uri, WorkspaceFolder } from "vscode";
 import { ProjectType } from "../utils";
 
-export function isPubGetProbablyRequired(ws: WorkspaceFolder): boolean {
-	const folder = ws.uri.fsPath;
+export function isPubGetProbablyRequired(folderUri: Uri): boolean {
+	const folder = folderUri.fsPath;
 	const pubspecPath = path.join(folder, "pubspec.yaml");
 	const packagesPath = path.join(folder, ".packages");
 	if (!folder || !fs.existsSync(pubspecPath))
@@ -25,7 +25,7 @@ export function isPubGetProbablyRequired(ws: WorkspaceFolder): boolean {
 	return pubspecModified > packagesModified;
 }
 
-export function promptToRunPubGet(folders: WorkspaceFolder[]) {
+export function promptToRunPubGet(folders: Uri[]) {
 	const label = "Fetch packages";
 	window.showInformationMessage("Some packages are missing or out of date, would you like to fetch them now?", label).then((clickedButton) => {
 		if (clickedButton === label)
@@ -33,12 +33,12 @@ export function promptToRunPubGet(folders: WorkspaceFolder[]) {
 	});
 }
 
-function fetchPackages(folders: WorkspaceFolder[]) {
-	let task = commands.executeCommand("dart.fetchPackages", folders[0].uri);
+function fetchPackages(folders: Uri[]) {
+	let task = commands.executeCommand("dart.fetchPackages", folders[0]);
 	for (let i = 1; i < folders.length; i++) {
 		task = task.then((code) => {
 			if (code === 0) // Continue with next one only if success
-				return commands.executeCommand("dart.fetchPackages", folders[i].uri);
+				return commands.executeCommand("dart.fetchPackages", folders[i]);
 		});
 	}
 }

@@ -19,8 +19,10 @@ export class DartPackagesProvider extends vs.Disposable implements vs.TreeDataPr
 		this.watcher.onDidDelete(this.refresh, this);
 	}
 
-	public setWorkspaces(workspaces: vs.WorkspaceFolder[]) {
-		this.workspaceRoot = workspaces && workspaces.length === 1 ? workspaces[0].uri.fsPath : null;
+	// TODO: This shoud handle this itself and not be set from outside?
+	// TODO: Rename "workspaces"
+	public setWorkspaces(workspaces: vs.Uri[]) {
+		this.workspaceRoot = workspaces && workspaces.length === 1 ? workspaces[0].fsPath : null;
 		this.refresh();
 	}
 

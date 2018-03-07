@@ -1,18 +1,19 @@
+import * as channels from "./channels";
 import * as child_process from "child_process";
+import * as dartWorkspace from "../project";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { ProgressLocation, Uri } from "vscode";
+import * as util from "../utils";
 import * as vs from "vscode";
 import { Analytics } from "../analytics";
 import { config } from "../config";
-import { FlutterLaunchRequestArguments, isWin } from "../debug/utils";
+import { dartPubPath, flutterPath, isFlutterProject, ProjectType, Sdks } from "../utils";
 import { FlutterDeviceManager } from "../flutter/device_manager";
-import { locateBestProjectRoot } from "../project";
+import { FlutterLaunchRequestArguments, isWin } from "../debug/utils";
+import { isProjectFolder } from "../project";
+import { ProgressLocation, Uri } from "vscode";
 import { SdkManager } from "../sdk/sdk_manager";
-import { dartPubPath, flutterPath, getDartWorkspaceFolders, isDartWorkspaceFolder, isFlutterProject, ProjectType, Sdks } from "../utils";
-import * as util from "../utils";
-import * as channels from "./channels";
 
 const flutterNameRegex = new RegExp("^[a-z][a-z0-9_]*$");
 
@@ -30,7 +31,7 @@ export class SdkCommands {
 		context.subscriptions.push(vs.commands.registerCommand("dart.fetchPackages", (uri) => {
 			if (!uri || !(uri instanceof Uri))
 				return;
-			if (isFlutterProject(vs.workspace.getWorkspaceFolder(uri)))
+			if (isFlutterProject(dartWorkspace.getProjectFolder(uri)))
 				return vs.commands.executeCommand("flutter.packages.get", uri);
 			else
 				return vs.commands.executeCommand("pub.get", uri);
@@ -77,15 +78,13 @@ export class SdkCommands {
 		command: string,
 		selection?: vs.Uri,
 	): Thenable<number> {
-		let file = selection && selection.fsPath;
-		file = file || (vs.window.activeTextEditor && vs.window.activeTextEditor.document.fileName);
-		let folder = file && locateBestProjectRoot(file);
+		let file = selection && selection;
+		file = file || (vs.window.activeTextEditor && vs.window.activeTextEditor.document.uri);
+		let folder = file && dartWorkspace.getProjectFolder(file);
 
 		// If there's only one folder, just use it to avoid prompting the user.
-		if (!folder && vs.workspace.workspaceFolders) {
-			const allowedProjects = getDartWorkspaceFolders();
-			if (allowedProjects.length === 1)
-				folder = allowedProjects[0].uri.fsPath;
+		if (!folder && dartWorkspace.projectFolders.length === 1) {
+			folder = dartWorkspace.projectFolders[0];
 		}
 
 		const folderPromise =
@@ -93,12 +92,12 @@ export class SdkCommands {
 				? Promise.resolve(folder)
 				// TODO: Can we get this filtered?
 				// https://github.com/Microsoft/vscode/issues/39132
-				: vs.window.showWorkspaceFolderPick({ placeHolder }).then((f) => f && isDartWorkspaceFolder(f) && f.uri.fsPath);
+				: vs.window.showWorkspaceFolderPick({ placeHolder }).then((f) => f && isProjectFolder(f.uri) && f.uri);
 
 		return folderPromise.then((f) => {
-			const workspacePath = vs.workspace.getWorkspaceFolder(vs.Uri.file(f)).uri.fsPath;
-			const shortPath = path.join(path.basename(f), path.relative(f, workspacePath));
-			return handler(f, command, shortPath);
+			const projectPath = dartWorkspace.getProjectFolder(f).fsPath;
+			const shortPath = path.join(path.basename(f.fsPath), path.relative(f.fsPath, projectPath));
+			return handler(f.fsPath, command, shortPath);
 		});
 	}
 

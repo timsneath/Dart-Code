@@ -6,6 +6,7 @@ import { FlutterLaunchRequestArguments, isWin } from "../debug/utils";
 import { ProjectType, Sdks, isFlutterProject } from "../utils";
 import { FlutterDeviceManager } from "../flutter/device_manager";
 import { SdkCommands } from "../commands/sdk";
+import { getProjectFolder } from "../project";
 
 export class DebugConfigProvider implements DebugConfigurationProvider {
 	private sdks: Sdks;
@@ -19,7 +20,10 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 	}
 
 	public provideDebugConfigurations(folder: WorkspaceFolder | undefined, token?: CancellationToken): ProviderResult<DebugConfiguration[]> {
-		const isFlutter = isFlutterProject(folder);
+		const isFlutter = isFlutterProject(
+			window.activeTextEditor && window.activeTextEditor.document
+				? getProjectFolder(window.activeTextEditor.document.uri)
+				: folder.uri);
 		return [{
 			name: isFlutter ? "Flutter" : "Dart",
 			program: isFlutter ? undefined : "${workspaceRoot}/bin/main.dart",
@@ -29,7 +33,10 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 	}
 
 	public resolveDebugConfiguration(folder: WorkspaceFolder | undefined, debugConfig: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
-		const isFlutter = isFlutterProject(folder);
+		const isFlutter = isFlutterProject(
+			window.activeTextEditor && window.activeTextEditor.document
+				? getProjectFolder(window.activeTextEditor.document.uri)
+				: folder.uri);
 		// TODO: This cast feels nasty?
 		this.setupDebugConfig(folder, debugConfig as any as FlutterLaunchRequestArguments, isFlutter, this.deviceManager && this.deviceManager.currentDevice ? this.deviceManager.currentDevice.id : null);
 

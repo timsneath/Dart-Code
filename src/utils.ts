@@ -1,13 +1,12 @@
+import * as as from "./analysis/analysis_server_types";
 import * as fs from "fs";
 import * as https from "https";
 import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
-import {
-	commands, env, MessageItem, Position, Range, TextDocument, Uri, window, workspace, WorkspaceFolder,
-} from "vscode";
-import * as as from "./analysis/analysis_server_types";
+import { commands, env, MessageItem, Position, Range, TextDocument, Uri, window, workspace, WorkspaceFolder } from "vscode";
 import { config } from "./config";
+import { isProjectFolder, projectFolders } from "./project";
 import { PackageMap } from "./debug/utils";
 
 const isWin = /^win/.test(process.platform);
@@ -24,8 +23,8 @@ export const FLUTTER_CREATE_PROJECT_TRIGGER_FILE = "dart_code_flutter_create.dar
 export const DART_DOWNLOAD_URL = "https://www.dartlang.org/install";
 export const FLUTTER_DOWNLOAD_URL = "https://flutter.io/setup/";
 
-export function isFlutterProject(folder: WorkspaceFolder): boolean {
-	return isDartWorkspaceFolder(folder) && referencesFlutterSdk(folder.uri.fsPath);
+export function isFlutterProject(folder: Uri): boolean {
+	return isProjectFolder(folder) && referencesFlutterSdk(folder.fsPath);
 }
 
 function referencesFlutterSdk(folder: string): boolean {
@@ -54,8 +53,7 @@ export function searchPaths(paths: string[], filter: (s: string) => boolean, exe
 }
 
 export function findSdks(): Sdks {
-	const folders = getDartWorkspaceFolders()
-		.map((w) => w.uri.fsPath);
+	const folders = projectFolders.map((f) => f.fsPath);
 	const pathOverride = (process.env.DART_PATH_OVERRIDE as string) || "";
 	const normalPath = (process.env.PATH as string) || "";
 	const paths = (pathOverride + path.delimiter + normalPath).split(path.delimiter);
@@ -173,20 +171,6 @@ function findFuchsiaRoot(folder: string): string {
 	return null;
 }
 
-export function getDartWorkspaceFolders(): WorkspaceFolder[] {
-	if (!workspace.workspaceFolders)
-		return [];
-	return workspace.workspaceFolders.filter(isDartWorkspaceFolder);
-}
-
-export function isDartWorkspaceFolder(folder: WorkspaceFolder): boolean {
-	if (!folder || folder.uri.scheme !== "file")
-		return false;
-
-	// TODO: Filter to only Dart projects.
-	return true;
-}
-
 export const hasDartExecutable = (pathToTest: string) => hasExecutable(pathToTest, dartExecutableName);
 const hasFlutterExecutable = (pathToTest: string) => hasExecutable(pathToTest, flutterExecutableName);
 
@@ -239,10 +223,10 @@ export function isAnalyzableAndInWorkspace(document: TextDocument): boolean {
 	if (document.isUntitled || !document.fileName)
 		return false;
 
-	return isAnalyzable(document) && isWithinWorkspace(document.fileName);
+	return isAnalyzable(document) && isWithinWorkspace(document.uri);
 }
 
-export function isWithinWorkspace(file: string) {
+export function isWithinWorkspace(file: Uri) {
 	// TODO: Is this fixed?
 	// asRelativePath returns the input if it's outside of the rootPath.
 	// Edit: Doesn't actually work properly:
@@ -251,7 +235,7 @@ export function isWithinWorkspace(file: string) {
 	// Edit: Still doesn't work properly!
 	//   https://github.com/Microsoft/vscode/issues/33709
 
-	return !!workspace.getWorkspaceFolder(Uri.file(file));
+	return !!workspace.getWorkspaceFolder(file);
 }
 
 function getExtensionVersion(): string {

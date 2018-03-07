@@ -8,5 +8,6 @@
 		"**/node_modules": true,
 		".vscode-test": true
 	},
-	"files.insertFinalNewline": true
+	"files.insertFinalNewline": true,
+	"dart.lineLength": 80
 }
