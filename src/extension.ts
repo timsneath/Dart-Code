@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as util from "./utils";
 import * as vs from "vscode";
 import { Analytics } from "./analytics";
 import { Analyzer } from "./analysis/analyzer";
@@ -26,20 +27,17 @@ import { EditCommands } from "./commands/edit";
 import { FileChangeHandler } from "./file_change_handler";
 import { FixCodeActionProvider } from "./providers/fix_code_action_provider";
 import { FlutterDaemon } from "./flutter/flutter_daemon";
-import { isFlutterProject } from "./utils";
 import { isPubGetProbablyRequired, promptToRunPubGet } from "./pub/pub";
 import { LegacyDartWorkspaceSymbolProvider } from "./providers/legacy_dart_workspace_symbol_provider";
 import { LegacyDebugConfigProvider } from "./providers/legacy_debug_config_provider";
 import { OpenFileTracker } from "./open_file_tracker";
-import { projectFolders, getProjectFolder } from "./project";
+import { projectFolders, getProjectFolder, onDidChangeProjectFolders } from "./project";
 import { SdkCommands } from "./commands/sdk";
 import { ServerStatusNotification } from "./analysis/analysis_server_types";
 import { showUserPrompts } from "./user_prompts";
 import { SnippetCompletionItemProvider } from "./providers/snippet_completion_item_provider";
 import { TypeHierarchyCommand } from "./commands/type_hierarchy";
 import { upgradeProject } from "./project_upgrade";
-import { WorkspaceFolder } from "vscode";
-import * as util from "./utils";
 
 const DART_MODE: vs.DocumentFilter[] = [{ language: "dart", scheme: "file" }];
 const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }];
@@ -194,7 +192,7 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Snippets are language-specific
 	context.subscriptions.push(vs.languages.registerCompletionItemProvider(DART_MODE, new SnippetCompletionItemProvider("snippets/dart.json", (_) => true)));
-	context.subscriptions.push(vs.languages.registerCompletionItemProvider(DART_MODE, new SnippetCompletionItemProvider("snippets/flutter.json", (uri) => isFlutterProject(getProjectFolder(uri)))));
+	context.subscriptions.push(vs.languages.registerCompletionItemProvider(DART_MODE, new SnippetCompletionItemProvider("snippets/flutter.json", (uri) => util.isFlutterProject(getProjectFolder(uri)))));
 
 	context.subscriptions.push(vs.languages.setLanguageConfiguration(DART_MODE[0].language, new DartLanguageConfiguration()));
 	const statusReporter = new AnalyzerStatusReporter(analyzer, sdks, analytics);
@@ -206,7 +204,7 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Set the root...
 	// Handle project changes that might affect SDKs.
-	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => {
+	context.subscriptions.push(onDidChangeProjectFolders((f) => {
 		recalculateAnalysisRoots();
 	}));
 	if (vs.workspace.workspaceFolders)
@@ -252,7 +250,7 @@ export function activate(context: vs.ExtensionContext) {
 	// Set up debug stuff.
 	// Remove all this when migrating to debugAdapterExecutable!
 	context.subscriptions.push(vs.commands.registerCommand("dart.getDebuggerExecutable", (path: string) => {
-		const entry = (path && isFlutterProject(getProjectFolder(vs.Uri.parse(path))))
+		const entry = (path && util.isFlutterProject(getProjectFolder(vs.Uri.parse(path))))
 			? context.asAbsolutePath("./out/src/debug/flutter_debug_entry.js")
 			: context.asAbsolutePath("./out/src/debug/dart_debug_entry.js");
 
@@ -297,7 +295,7 @@ export function activate(context: vs.ExtensionContext) {
 	}));
 
 	// Handle project changes that might affect SDKs.
-	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => {
+	context.subscriptions.push(onDidChangeProjectFolders((f) => {
 		handleConfigurationChange(sdks);
 	}));
 
@@ -313,11 +311,11 @@ export function activate(context: vs.ExtensionContext) {
 
 	// Register our view providers.
 	const dartPackagesProvider = new DartPackagesProvider();
-	dartPackagesProvider.setWorkspaces(projectFolders);
+	dartPackagesProvider.setProjects(projectFolders);
 	context.subscriptions.push(dartPackagesProvider);
 	vs.window.registerTreeDataProvider("dartPackages", dartPackagesProvider);
-	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => {
-		dartPackagesProvider.setWorkspaces(projectFolders);
+	context.subscriptions.push(onDidChangeProjectFolders((f) => {
+		dartPackagesProvider.setProjects(projectFolders);
 	}));
 
 	context.subscriptions.push(vs.commands.registerCommand("dart.package.openFile", (filePath) => {
@@ -346,7 +344,7 @@ export function activate(context: vs.ExtensionContext) {
 		if (foldersRequiringPackageFetch.length > 0)
 			promptToRunPubGet(foldersRequiringPackageFetch);
 	}
-	context.subscriptions.push(vs.workspace.onDidChangeWorkspaceFolders((f) => checkForPackages()));
+	context.subscriptions.push(onDidChangeProjectFolders((f) => checkForPackages()));
 	checkForPackages();
 
 	// Log how long all this startup took.

@@ -1,11 +1,21 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as util from "./utils";
-import { Uri, workspace, window } from "vscode";
+import { Uri, workspace, window, Event, EventEmitter } from "vscode";
 
+const onDidChangeTreeDataEmitter: EventEmitter<ProjectFoldersChangeEvent> = new EventEmitter<ProjectFoldersChangeEvent>();
+export const onDidChangeProjectFolders: Event<ProjectFoldersChangeEvent> = onDidChangeTreeDataEmitter.event;
 export let projectFolders: Uri[] = getProjectFolders();
-workspace.onDidChangeWorkspaceFolders((_) => projectFolders = getProjectFolders());
-// TODO: Event
+
+workspace.onDidChangeWorkspaceFolders((_) => {
+	const oldProjectFolders = projectFolders;
+	projectFolders = getProjectFolders();
+
+	const added = projectFolders.filter((f) => oldProjectFolders.indexOf(f) === -1);
+	const removed = oldProjectFolders.filter((f) => projectFolders.indexOf(f) === -1);
+
+	onDidChangeTreeDataEmitter.fire({ added, removed });
+});
 
 function getProjectFolders() {
 	if (!workspace.workspaceFolders)
@@ -40,3 +50,8 @@ export function getProjectFolder(resource: Uri): Uri {
 }
 
 // TODO: showWorkspaceFolderPick
+
+export interface ProjectFoldersChangeEvent {
+	readonly added: Uri[];
+	readonly removed: Uri[];
+}

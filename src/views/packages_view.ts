@@ -9,7 +9,7 @@ export class DartPackagesProvider extends vs.Disposable implements vs.TreeDataPr
 	private watcher: vs.FileSystemWatcher;
 	private onDidChangeTreeDataEmitter: vs.EventEmitter<PackageDep | undefined> = new vs.EventEmitter<PackageDep | undefined>();
 	public readonly onDidChangeTreeData: vs.Event<PackageDep | undefined> = this.onDidChangeTreeDataEmitter.event;
-	public workspaceRoot: string;
+	public projectRoot: string;
 
 	constructor() {
 		super(() => this.watcher.dispose());
@@ -21,8 +21,8 @@ export class DartPackagesProvider extends vs.Disposable implements vs.TreeDataPr
 
 	// TODO: This shoud handle this itself and not be set from outside?
 	// TODO: Rename "workspaces"
-	public setWorkspaces(workspaces: vs.Uri[]) {
-		this.workspaceRoot = workspaces && workspaces.length === 1 ? workspaces[0].fsPath : null;
+	public setProjects(projects: vs.Uri[]) {
+		this.projectRoot = projects && projects.length === 1 ? projects[0].fsPath : null;
 		this.refresh();
 	}
 
@@ -54,10 +54,10 @@ export class DartPackagesProvider extends vs.Disposable implements vs.TreeDataPr
 						}
 					}));
 				}
-			} else if (this.workspaceRoot) {
+			} else if (this.projectRoot) {
 				// When we're re-parsing from root, un-hide the tree. It'll be hidden if we find nothing.
 				DartPackagesProvider.showTree();
-				const packagesPath = PackageMap.findPackagesFile(path.join(this.workspaceRoot, ".packages"));
+				const packagesPath = PackageMap.findPackagesFile(path.join(this.projectRoot, ".packages"));
 				if (packagesPath && fs.existsSync(packagesPath)) {
 					resolve(this.getDepsInPackages(packagesPath));
 				} else {
@@ -97,7 +97,7 @@ export class DartPackagesProvider extends vs.Disposable implements vs.TreeDataPr
 				if (!p.startsWith("file:"))
 					p = path.join(packageRoot, p);
 
-				if (this.workspaceRoot !== p) {
+				if (this.projectRoot !== p) {
 					packageName = line.substring(0, line.indexOf(":"));
 					p = vs.Uri.parse(p).fsPath;
 					return new PackageDep(`${packageName}`, vs.Uri.file(p), vs.TreeItemCollapsibleState.Collapsed);
