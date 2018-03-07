@@ -1,7 +1,7 @@
 import * as path from "path";
 import { Analytics } from "../analytics";
 import { config } from "../config";
-import { DebugConfigurationProvider, WorkspaceFolder, CancellationToken, DebugConfiguration, ProviderResult, commands, window } from "vscode";
+import { DebugConfigurationProvider, WorkspaceFolder, CancellationToken, DebugConfiguration, ProviderResult, commands, window, Uri, workspace } from "vscode";
 import { FlutterLaunchRequestArguments, isWin } from "../debug/utils";
 import { ProjectType, Sdks, isFlutterProject } from "../utils";
 import { FlutterDeviceManager } from "../flutter/device_manager";
@@ -20,13 +20,17 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 	}
 
 	public provideDebugConfigurations(folder: WorkspaceFolder | undefined, token?: CancellationToken): ProviderResult<DebugConfiguration[]> {
-		const isFlutter = isFlutterProject(
-			window.activeTextEditor && window.activeTextEditor.document
-				? getProjectFolder(window.activeTextEditor.document.uri)
-				: folder.uri);
+		const activeFile = window.activeTextEditor && window.activeTextEditor.document && window.activeTextEditor.document.uri;
+		const projectFolder = activeFile && getProjectFolder(activeFile) || folder.uri;
+		const isFlutter = isFlutterProject(projectFolder);
+		const workspaceFolder = workspace.getWorkspaceFolder(activeFile);
+		const relativePathToScript = activeFile && workspaceFolder && path.relative(workspaceFolder.uri.fsPath, activeFile.fsPath) || `bin${path.sep}main.dart`;
+		const entryScript = isFlutter
+			? undefined
+			: `\${workspaceRoot}${path.sep}${relativePathToScript}`;
 		return [{
 			name: isFlutter ? "Flutter" : "Dart",
-			program: isFlutter ? undefined : "${workspaceRoot}/bin/main.dart",
+			program: entryScript,
 			request: "launch",
 			type: "dart",
 		}];
@@ -34,11 +38,11 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 
 	public resolveDebugConfiguration(folder: WorkspaceFolder | undefined, debugConfig: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
 		const projectFolder = window.activeTextEditor && window.activeTextEditor.document
-			? getProjectFolder(window.activeTextEditor.document.uri)
+			? (getProjectFolder(window.activeTextEditor.document.uri) || folder.uri)
 			: folder.uri;
 		const isFlutter = isFlutterProject(projectFolder);
 		// TODO: This cast feels nasty?
-		this.setupDebugConfig(folder, debugConfig as any as FlutterLaunchRequestArguments, isFlutter, this.deviceManager && this.deviceManager.currentDevice ? this.deviceManager.currentDevice.id : null);
+		this.setupDebugConfig(projectFolder, debugConfig as any as FlutterLaunchRequestArguments, isFlutter, this.deviceManager && this.deviceManager.currentDevice ? this.deviceManager.currentDevice.id : null);
 
 		if (isFlutter)
 			debugConfig.program = debugConfig.program || path.join(projectFolder.fsPath, "lib", "main.dart"); // Set Flutter default path.
@@ -52,18 +56,18 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 		return debugConfig;
 	}
 
-	private setupDebugConfig(folder: WorkspaceFolder | undefined, debugConfig: FlutterLaunchRequestArguments, isFlutter: boolean, deviceId: string) {
-		this.analytics.logDebuggerStart(folder && folder.uri);
+	private setupDebugConfig(folder: Uri | undefined, debugConfig: FlutterLaunchRequestArguments, isFlutter: boolean, deviceId: string) {
+		this.analytics.logDebuggerStart(folder);
 
 		const dartExec = isWin ? "dart.exe" : "dart";
 		const flutterExec = isWin ? "flutter.bat" : "flutter";
 
-		const conf = config.for(folder.uri);
+		const conf = config.for(folder);
 
 		// Attach any properties that weren't explicitly set.
 		debugConfig.type = debugConfig.type || "dart";
 		debugConfig.request = debugConfig.request || "launch";
-		debugConfig.cwd = debugConfig.cwd || "${workspaceRoot}";
+		debugConfig.cwd = debugConfig.cwd || folder.fsPath;
 		debugConfig.args = debugConfig.args || [];
 		debugConfig.dartPath = debugConfig.dartPath || path.join(this.sdks.dart, "bin", dartExec);
 		debugConfig.observatoryLogFile = debugConfig.observatoryLogFile || conf.observatoryLogFile;

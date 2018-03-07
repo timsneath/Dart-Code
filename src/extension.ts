@@ -250,7 +250,21 @@ export function activate(context: vs.ExtensionContext) {
 	// Set up debug stuff.
 	// Remove all this when migrating to debugAdapterExecutable!
 	context.subscriptions.push(vs.commands.registerCommand("dart.getDebuggerExecutable", (path: string) => {
-		const entry = (path && util.isFlutterProject(getProjectFolder(vs.Uri.parse(path))))
+		const projectFolder = vs.window.activeTextEditor && vs.window.activeTextEditor.document
+			? (getProjectFolder(vs.window.activeTextEditor.document.uri) || vs.Uri.file(path))
+			: vs.Uri.file(path);
+		// TODO: This code is currently flawed. We can't use the active editor to decide on the type because the user
+		// may have a launch.json that is referencing a Dart script!
+		// eg.:
+		// - multi-project folder that has Dart + Flutter projects
+		// - F5 in Flutter one is good
+		// - F5 in Dart one creates a launch.json - all is good
+		// - Switch back to Flutter file and hit F5 - we now try to launch Flutter debugger with a Dart CLI script
+		// :-(
+		// https://github.com/Dart-Code/Dart-Code/issues/493#issuecomment-371229109
+		// https://github.com/Microsoft/vscode/issues/45220
+		const isFlutter = util.isFlutterProject(projectFolder);
+		const entry = isFlutter
 			? context.asAbsolutePath("./out/src/debug/flutter_debug_entry.js")
 			: context.asAbsolutePath("./out/src/debug/dart_debug_entry.js");
 
