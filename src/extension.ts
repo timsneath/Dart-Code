@@ -233,7 +233,7 @@ export function activate(context: vs.ExtensionContext, isRestart: boolean = fals
 			context.subscriptions.push(vs.languages.registerDocumentSymbolProvider(filter, documentSymbolProvider));
 		});
 
-		if (analyzer.capabilities.supportsFlutterOutline)
+		if (config.previewFlutterOutline && analyzer.capabilities.supportsFlutterOutline)
 			context.subscriptions.push(vs.window.registerTreeDataProvider("dartFlutterOutline", new FlutterOutlineProvider(analyzer)));
 
 		context.subscriptions.push(new OpenFileTracker(analyzer));
@@ -374,6 +374,7 @@ function getAnalyzerSettings() {
 		+ config.flutterDaemonLogFile
 		+ config.closingLabels
 		+ config.analyzeAngularTemplates
+		+ config.previewFlutterOutline
 		+ config.previewDart2;
 }
 
