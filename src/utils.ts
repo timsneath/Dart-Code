@@ -8,7 +8,7 @@ import {
 } from "vscode";
 import * as as from "./analysis/analysis_server_types";
 import { config } from "./config";
-import { PackageMap } from "./debug/utils";
+import { PackageMap, isWithinPath, forceWindowsDriveLetterToUppercase } from "./debug/utils";
 
 const isWin = /^win/.test(process.platform);
 const dartExecutableName = isWin ? "dart.exe" : "dart";
@@ -233,6 +233,16 @@ export function getSdkVersion(sdkRoot: string): string {
 	} catch (e) {
 		return null;
 	}
+}
+
+export function removeRedundantChildFolders(paths: string[]): string[] {
+	// Get a list sorted by path length (this ensures parents always come before children).
+	const sorted = paths.slice(0).sort((a, b) => a.length - b.length);
+
+	return paths.filter((child) => {
+		// Filter out if we are covered by a parent path.
+		return !sorted.find((parent) => isWithinPath(child, parent));
+	});
 }
 
 export function isAnalyzable(document: TextDocument): boolean {

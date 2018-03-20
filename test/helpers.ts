@@ -11,10 +11,11 @@ export const ext = vs.extensions.getExtension<{
 	analyzerCapabilities: AnalyzerCapabilities,
 	sdks: Sdks,
 }>("Dart-Code.dart-code");
-export const helloWorldFolder = vs.Uri.file(path.join(ext.extensionPath, "test/test_projects/hello_world"));
+export const extensionPath = ext.extensionPath;
+export const helloWorldFolder = vs.Uri.file(path.join(extensionPath, "test/test_projects/hello_world"));
 export const emptyFile = vs.Uri.file(path.join(helloWorldFolder.fsPath, "lib/empty.dart"));
 export const everythingFile = vs.Uri.file(path.join(helloWorldFolder.fsPath, "lib/everything.dart"));
-export const flutterHelloWorldFolder = vs.Uri.file(path.join(ext.extensionPath, "test/test_projects/flutter_hello_world"));
+export const flutterHelloWorldFolder = vs.Uri.file(path.join(extensionPath, "test/test_projects/flutter_hello_world"));
 export const flutterEmptyFile = vs.Uri.file(path.join(flutterHelloWorldFolder.fsPath, "lib/empty.dart"));
 export const flutterHelloWorldMainFile = vs.Uri.file(path.join(flutterHelloWorldFolder.fsPath, "lib/main.dart"));
 
