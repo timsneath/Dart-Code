@@ -87,8 +87,6 @@ class ResourceConfig {
 	get observatoryLogFile() { return resolveHomePath(this.getConfig<string>("observatoryLogFile")); }
 	get promptToGetPackages() { return this.getConfig<boolean>("promptToGetPackages"); }
 	get vmAdditionalArgs() { return this.getConfig<string[]>("vmAdditionalArgs"); }
-	get promptToUpgradeWorkspace() { return this.getConfig<boolean>("promptToUpgradeWorkspace"); }
-	public setPromptToUpgradeWorkspace(value: boolean): Thenable<void> { return this.setConfig("promptToUpgradeWorkspace", value, ConfigurationTarget.WorkspaceFolder); }
 }
 
 export class CodeCapabilities {
