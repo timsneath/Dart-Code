@@ -13,6 +13,7 @@ import { ProjectType, Sdks, isFlutterWorkspaceFolder, isInsideFolderNamed, isFlu
 import { SdkCommands } from "../commands/sdk";
 import { spawn } from "child_process";
 import { FlutterTestDebugSession } from "../debug/flutter_test_debug_impl";
+import { locateBestProjectRoot } from "../project";
 
 export class DebugConfigProvider implements DebugConfigurationProvider {
 	private sdks: Sdks;
@@ -37,20 +38,20 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 	}
 
 	public resolveDebugConfiguration(folder: WorkspaceFolder | undefined, debugConfig: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+		const openFile = window.activeTextEditor && window.activeTextEditor.document ? window.activeTextEditor.document.uri.fsPath : null;
+		const bestProjectRoot = openFile
+			? locateBestProjectRoot(openFile)
+			: (workspace.getWorkspaceFolder(Uri.file(openFile)) || folder).uri.fsPath;
+
 		// If there's no program set, try to guess one.
 		if (!debugConfig.program) {
-			const openFile = window.activeTextEditor && window.activeTextEditor.document ? window.activeTextEditor.document.uri.fsPath : null;
-			// Overwrite the folder with a more appropriate workspace root (https://github.com/Microsoft/vscode/issues/45580)
-			if (openFile) {
-				folder = workspace.getWorkspaceFolder(Uri.file(openFile)) || folder;
-			}
 			if (isTestFile(openFile) || isInsideFolderNamed(openFile, "bin") || isInsideFolderNamed(openFile, "tool")) {
 				debugConfig.program = openFile;
 			} else {
 				// Use the open file as a clue to find the best project root, then search from there.
 				const commonLaunchPaths = [
-					path.join(folder.uri.fsPath, "lib", "main.dart"),
-					path.join(folder.uri.fsPath, "bin", "main.dart"),
+					path.join(bestProjectRoot, "lib", "main.dart"),
+					path.join(bestProjectRoot, "bin", "main.dart"),
 				];
 				for (const launchPath of commonLaunchPaths) {
 					if (fs.existsSync(launchPath)) {
@@ -69,7 +70,7 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 		}
 
 		// If we don't have a cwd then find the best one from the project root.
-		debugConfig.cwd = debugConfig.cwd || folder.uri.fsPath;
+		debugConfig.cwd = debugConfig.cwd || bestProjectRoot;
 
 		const isFlutter = isFlutterProjectFolder(debugConfig.cwd as string);
 		const isTest = isTestFile(debugConfig.program as string);
@@ -77,12 +78,12 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 			? (isTest ? DebuggerType.FlutterTest : DebuggerType.Flutter)
 			: DebuggerType.Dart;
 
-		// TODO: This cast feels nasty?
-		this.setupDebugConfig(folder, debugConfig as any as FlutterLaunchRequestArguments, isFlutter, this.deviceManager && this.deviceManager.currentDevice ? this.deviceManager.currentDevice.id : null);
-
 		// Debugger always uses uppercase drive letters to ensure our paths have them regardless of where they came from.
 		debugConfig.program = forceWindowsDriveLetterToUppercase(debugConfig.program);
 		debugConfig.cwd = forceWindowsDriveLetterToUppercase(debugConfig.cwd);
+
+		// TODO: This cast feels nasty?
+		this.setupDebugConfig(Uri.file(debugConfig.cwd), debugConfig as any as FlutterLaunchRequestArguments, isFlutter, this.deviceManager && this.deviceManager.currentDevice ? this.deviceManager.currentDevice.id : null);
 
 		// Start port listener on launch of first debug session.
 		const debugServer = this.getDebugServer(debugType);
@@ -122,18 +123,17 @@ export class DebugConfigProvider implements DebugConfigurationProvider {
 		return this.debugServers[type];
 	}
 
-	private setupDebugConfig(folder: WorkspaceFolder | undefined, debugConfig: FlutterLaunchRequestArguments, isFlutter: boolean, deviceId: string) {
-		this.analytics.logDebuggerStart(folder && folder.uri);
+	private setupDebugConfig(launchScript: Uri, debugConfig: FlutterLaunchRequestArguments, isFlutter: boolean, deviceId: string) {
+		this.analytics.logDebuggerStart(launchScript);
 
 		const dartExec = isWin ? "dart.exe" : "dart";
 		const flutterExec = isWin ? "flutter.bat" : "flutter";
 
-		const conf = config.for(folder.uri);
+		const conf = config.for(launchScript);
 
 		// Attach any properties that weren't explicitly set.
 		debugConfig.type = debugConfig.type || "dart";
 		debugConfig.request = debugConfig.request || "launch";
-		debugConfig.cwd = forceWindowsDriveLetterToUppercase(debugConfig.cwd || folder.uri.fsPath);
 		debugConfig.args = debugConfig.args || [];
 		debugConfig.vmArgs = debugConfig.vmArgs || conf.vmAdditionalArgs;
 		debugConfig.dartPath = debugConfig.dartPath || path.join(this.sdks.dart, "bin", dartExec);
