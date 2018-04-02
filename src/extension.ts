@@ -45,6 +45,7 @@ import { checkForSdkUpdates } from "./sdk/update_check";
 import { setUpHotReloadOnSave } from "./flutter/hot_reload_save_handler";
 import { findPackageRoots } from "./analysis/utils";
 import { flutterPath, dartVMPath, analyzerSnapshotPath, handleMissingSdks, findSdks } from "./sdk/utils";
+import { HotReloadCoverageDecorations } from "./decorations/hot_reload_coverage";
 
 const DART_MODE: vs.DocumentFilter[] = [{ language: "dart", scheme: "file" }];
 const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }];
@@ -52,6 +53,7 @@ const HTML_MODE: vs.DocumentFilter[] = [{ language: "html", scheme: "file" }];
 const DART_PROJECT_LOADED = "dart-code:dartProjectLoaded";
 const FLUTTER_PROJECT_LOADED = "dart-code:flutterProjectLoaded";
 export const SERVICE_EXTENSION_CONTEXT_PREFIX = "dart-code:serviceExtension.";
+export let extensionPath: string = null;
 
 let analyzer: Analyzer;
 let flutterDaemon: FlutterDaemon;
@@ -63,6 +65,7 @@ let showLintNames: boolean;
 let analyzerSettings: string;
 
 export function activate(context: vs.ExtensionContext, isRestart: boolean = false) {
+	extensionPath = context.extensionPath;
 	util.logTime("Code called activate");
 	// Wire up a reload command that will re-initialise everything.
 	context.subscriptions.push(vs.commands.registerCommand("_dart.reloadExtension", (_) => {
@@ -215,6 +218,7 @@ export function activate(context: vs.ExtensionContext, isRestart: boolean = fals
 		if (analyzer.capabilities.supportsClosingLabels && config.closingLabels) {
 			context.subscriptions.push(new ClosingLabelsDecorations(analyzer));
 		}
+		context.subscriptions.push(new HotReloadCoverageDecorations(analyzer));
 
 		if (analyzer.capabilities.supportsGetDeclerations) {
 			context.subscriptions.push(vs.languages.registerWorkspaceSymbolProvider(new DartSymbolProvider(analyzer)));
