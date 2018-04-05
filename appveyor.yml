@@ -15,9 +15,11 @@ deploy:
   artifact: test-results
 
 artifacts:
-  # Folder is renamed from .test-_esults in after_test
+  # Folder is renamed from .test-_results in after_test
   - path: win\*.xml
     name: test-results
+  - path: .dart_code_logs\*.txt
+    name: logs
 
 install:
   - ps: mkdir "with spaces"
