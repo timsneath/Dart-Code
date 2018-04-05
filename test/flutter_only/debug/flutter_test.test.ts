@@ -7,6 +7,7 @@ import { activate, ext, closeAllOpenFiles, flutterHelloWorldMainFile, flutterTes
 
 describe("flutter test debugger", () => {
 	const dc = new DebugClient(process.execPath, path.join(ext.extensionPath, "out/src/debug/flutter_test_debug_entry.js"), "dart");
+	(dc as any)._enableStderr = true;
 	// Spawning flutter tests seem to be kinda slow, so we need a higher timeout
 	dc.defaultTimeout = 30000;
 
