@@ -8,8 +8,8 @@ function getEnvLog(file: string) {
 	console.log("111111");
 	if (!process.env.DC_LOGS)
 		return;
-	console.log(path.join(process.env.DC_LOGS, `${file}_${logNum}txt`));
-	return path.join(process.env.DC_LOGS, `${file}_${logNum++}txt`);
+	console.log(path.join(process.env.DC_LOGS, `${file}_${logNum}.txt`));
+	return path.join(process.env.DC_LOGS, `${file}_${logNum++}.txt`);
 }
 
 class Config {
