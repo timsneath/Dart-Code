@@ -88,9 +88,6 @@ before_script:
   - ./cc-test-reporter before-build;
 
 script:
-  - pwd
-  - cd test/test_projects/flutter_hello_world
-  - /home/travis/build/Dart-Code/Dart-Code/with\ spaces/flutter/bin/flutter test --verbose test/broken_test.dart
   - npm run vscode:prepublish
   - npm run lint
   - npm test
