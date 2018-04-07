@@ -92,6 +92,7 @@ script:
   - npm run lint
   - cd test/test_projects/flutter_hello_world
   - ../../../with\ spaces/flutter/bin/flutter packages get
+  ../../../with\ spaces/flutter/bin/flutter test test/broken_test.dart
   - cd ../../..
   - npm test
 
