@@ -88,6 +88,8 @@ before_script:
   - ./cc-test-reporter before-build;
 
 script:
+  - cd test/test_projects/flutter_hello_world
+  - flutter test --verbose test/broken_test.dart
   - npm run vscode:prepublish
   - npm run lint
   - npm test

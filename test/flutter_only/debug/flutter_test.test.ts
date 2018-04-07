@@ -5,7 +5,7 @@ import * as vs from "vscode";
 import { DebugClient } from "vscode-debugadapter-testsupport";
 import { activate, ext, closeAllOpenFiles, flutterHelloWorldMainFile, flutterTestMainFile, positionOf, flutterTestOtherFile, flutterTestBrokenFile, openFile } from "../../helpers";
 
-describe("flutter test debugger", () => {
+describe.only("flutter test debugger", () => {
 	const dc = new DebugClient(process.execPath, path.join(ext.extensionPath, "out/src/debug/flutter_test_debug_entry.js"), "dart");
 	(dc as any)._enableStderr = true;
 	// Spawning flutter tests seem to be kinda slow, so we need a higher timeout
@@ -68,12 +68,12 @@ describe("flutter test debugger", () => {
 		]);
 	});
 
-	it("receives stderr for failing tests", async () => {
+	it.only("receives stderr for failing tests", async () => {
 		const config = await configFor(flutterTestBrokenFile);
 		await Promise.all([
 			dc.configurationSequence(),
 			dc.launch(config),
-			dc.assertOutput("stderr", "Test failed. See exception logs above."),
+			dc.assertOutput("stderr", "Tefst failed. See exception logs above."),
 			dc.waitForEvent("terminated"),
 		]);
 	});
