@@ -12,6 +12,7 @@ describe.only("flutter test debugger", () => {
 	dc.defaultTimeout = 120000;
 
 	beforeEach(() => activate(flutterTestMainFile));
+	beforeEach(function () { this.timeout(120000); });
 	beforeEach(() => dc.start());
 	afterEach(() => dc.stop());
 
