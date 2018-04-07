@@ -90,6 +90,9 @@ before_script:
 script:
   - npm run vscode:prepublish
   - npm run lint
+  - cd test/test_projects/flutter_hello_world
+  - ../../../with\ spaces/flutter/bin/flutter packages get
+  - cd ../../..
   - npm test
 
 after_script:
