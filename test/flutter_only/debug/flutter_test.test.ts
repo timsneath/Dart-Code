@@ -9,7 +9,7 @@ describe.only("flutter test debugger", () => {
 	const dc = new DebugClient(process.execPath, path.join(ext.extensionPath, "out/src/debug/flutter_test_debug_entry.js"), "dart");
 	(dc as any)._enableStderr = true;
 	// Spawning flutter tests seem to be kinda slow, so we need a higher timeout
-	dc.defaultTimeout = 30000;
+	dc.defaultTimeout = 120000;
 
 	beforeEach(() => activate(flutterTestMainFile));
 	beforeEach(() => dc.start());
