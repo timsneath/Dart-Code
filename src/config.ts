@@ -5,10 +5,8 @@ import { versionIsAtLeast, resolveHomePath } from "./utils";
 // Gets a default log file based on an env variable; generally set in CI scripts.
 let logNum = 0;
 function getEnvLog(file: string) {
-	console.log("111111");
 	if (!process.env.DC_LOGS)
 		return;
-	console.log(path.join(process.env.DC_LOGS, `${file}_${logNum}.txt`));
 	return path.join(process.env.DC_LOGS, `${file}_${logNum++}.txt`);
 }
 

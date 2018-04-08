@@ -79,8 +79,10 @@ beforeEach(async function () {
 	const logFiles = ["observatory", "flutterRun", "flutterTest"];
 	for (const logFile of logFiles) {
 		const key = logFile + "LogFile";
+		const logPath = path.join(logFolder, `${prefix}${logFile}.txt`);
 		const oldValue = conf.get<string>(key);
-		await conf.update(key, path.join(logFolder, `${prefix}${logFile}.txt`));
+		console.log(`Setting ${key} to ${logPath}`);
+		await conf.update(key, logPath);
 		defer(async () => await conf.update(key, oldValue));
 	}
 });
