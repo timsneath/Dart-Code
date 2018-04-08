@@ -76,7 +76,7 @@ describe.only("flutter test debugger", () => {
 			dc.configurationSequence(),
 			dc.launch(config),
 			dc.assertOutput("stderr", "Test failed. See exception logs above."),
-			dc.waitForEvent("stopped"),
+			dc.assertStoppedLocation("exception", {}),
 			// TODO: The above should be this, but locations don't maytch up...
 			// error is bad - investigate!
 			// dc.assertStoppedLocation("exception", {
