@@ -70,11 +70,16 @@ describe.only("flutter test debugger", () => {
 	});
 
 	it.only("receives stderr for failing tests", async () => {
+		await openFile(flutterTestBrokenFile);
 		const config = await configFor(flutterTestBrokenFile);
 		await Promise.all([
 			dc.configurationSequence(),
 			dc.launch(config),
-			dc.assertOutput("stderr", "Tefst failed. See exception logs above."),
+			dc.assertOutput("stderr", "Test failed. See exception logs above."),
+			dc.assertStoppedLocation("exception", {
+				line: positionOf("^won't find this").line,
+				path: flutterTestBrokenFile.fsPath,
+			}),
 			dc.waitForEvent("terminated"),
 		]);
 	});
