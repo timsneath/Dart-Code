@@ -69,19 +69,18 @@ describe.only("flutter test debugger", () => {
 		]);
 	});
 
-	it.only("stops on exception", async () => {
+	// Skipped because https://github.com/flutter/flutter/issues/16350
+	it.skip("stops on exception", async () => {
 		await openFile(flutterTestBrokenFile);
 		const config = await configFor(flutterTestBrokenFile);
 		await Promise.all([
 			dc.configurationSequence(),
 			dc.launch(config),
 			dc.assertOutput("stderr", "Test failed. See exception logs above."),
-			// TODO: Make one of these work???
-			// dc.assertStoppedLocation("exception", {}),
-			// dc.assertStoppedLocation("exception", {
-			// 	line: positionOf("^won't find this").line,
-			// 	path: flutterTestBrokenFile.fsPath,
-			// }),
+			dc.assertStoppedLocation("exception", {
+				line: positionOf("^won't find this").line,
+				path: flutterTestBrokenFile.fsPath,
+			}),
 		]);
 	});
 
