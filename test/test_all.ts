@@ -110,8 +110,8 @@ async function runTests(testFolder: string, workspaceFolder: string, sdkPaths: s
 }
 
 async function runAllTests(): Promise<void> {
-	const codeVersions = ["*", "insiders"];
-	const sdkPaths = [process.env.PATH_STABLE || process.env.PATH, process.env.PATH_UNSTABLE].filter((p) => p);
+	const codeVersions = ["*"/*, "insiders"*/];
+	const sdkPaths = [process.env.PATH_STABLE/* || process.env.PATH, process.env.PATH_UNSTABLE*/].filter((p) => p);
 	let runNumber = 1;
 	for (const codeVersion of codeVersions) {
 		for (const sdkPath of sdkPaths) {
