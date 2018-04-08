@@ -75,11 +75,11 @@ beforeEach(async function () {
 	const logFolder = process.env.DC_LOGS || path.join(ext.extensionPath, ".dart_code_logs");
 	const prefix = filenameSafe(this.currentTest.fullTitle()) + "_";
 
-	const conf = vs.workspace.getConfiguration("dart");
+	const conf = vs.workspace.getConfiguration("dart", vs.workspace.workspaceFolders[0].uri);
 	const logFiles = ["observatory", "flutterRun", "flutterTest"];
 	for (const logFile of logFiles) {
 		const key = logFile + "LogFile";
-		const oldValue = conf.get<string>(key, null);
+		const oldValue = conf.get<string>(key);
 		await conf.update(key, path.join(logFolder, `${prefix}${logFile}.txt`));
 		defer(async () => await conf.update(key, oldValue));
 	}
