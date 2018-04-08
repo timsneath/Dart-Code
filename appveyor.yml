@@ -25,7 +25,7 @@ deploy:
     artifact: logs
 
 artifacts:
-  # Folder is renamed from .test-_results in after_test
+  # Folder is renamed from .test_results in after_test
   - path: win\*.xml
     name: test-results
   - path: .dart_code_logs\*.txt
