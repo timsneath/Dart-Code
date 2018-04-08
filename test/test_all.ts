@@ -118,11 +118,11 @@ async function runAllTests(): Promise<void> {
 			// Allow failures from unstable builds (we'll still see results in build logs).
 			const allowFailures = true; // codeVersion === "insiders" || sdkPath === process.env.PATH_UNSTABLE;
 			const totalRuns = 5 * sdkPaths.length * codeVersions.length;
-			await runTests("dart_only", "hello_world", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			// await runTests("dart_only", "hello_world", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
 			await runTests("flutter_only", "flutter_hello_world", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
-			await runTests("multi_root", "projects.code-workspace", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
-			await runTests("multi_root_upgraded", "", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
-			await runTests("not_activated/flutter_create", "empty", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			// await runTests("multi_root", "projects.code-workspace", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			// await runTests("multi_root_upgraded", "", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			// await runTests("not_activated/flutter_create", "empty", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
 		}
 	}
 
