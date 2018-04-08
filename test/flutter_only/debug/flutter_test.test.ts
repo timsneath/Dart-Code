@@ -3,16 +3,16 @@ import * as path from "path";
 import * as fs from "fs";
 import * as vs from "vscode";
 import { DebugClient } from "vscode-debugadapter-testsupport";
+import { DebugProtocol } from "vscode-debugprotocol";
 import { activate, ext, closeAllOpenFiles, flutterHelloWorldMainFile, flutterTestMainFile, positionOf, flutterTestOtherFile, flutterTestBrokenFile, openFile } from "../../helpers";
 
 describe.only("flutter test debugger", () => {
 	const dc = new DebugClient(process.execPath, path.join(ext.extensionPath, "out/src/debug/flutter_test_debug_entry.js"), "dart");
 	(dc as any)._enableStderr = true;
 	// Spawning flutter tests seem to be kinda slow, so we need a higher timeout
-	dc.defaultTimeout = 1200000;
+	dc.defaultTimeout = 30000;
 
 	beforeEach(() => activate(flutterTestMainFile));
-	beforeEach(function () { this.timeout(1200000); });
 	beforeEach(() => dc.start());
 	afterEach(() => dc.stop());
 
