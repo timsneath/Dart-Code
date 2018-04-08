@@ -74,7 +74,6 @@ async function runTests(testFolder: string, workspaceFolder: string, sdkPaths: s
 	env.DC_TEST_LOGS = path.join(cwd, ".dart_code_logs", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}`);
 	env.COVERAGE_OUTPUT = path.join(cwd, ".nyc_output", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}.json`);
 	env.TEST_XML_OUTPUT = path.join(cwd, ".test_results", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}.xml`);
-	console.log(`Logging to ${env.DC_TEST_LOGS}`);
 
 	// Ensure any necessary folders exist.
 	if (!fs.existsSync(".nyc_output"))
