@@ -204,6 +204,10 @@ export class DartDebugSession extends DebugSession {
 
 				Promise.all(promises).then((_) => {
 					this.sendEvent(new InitializedEvent());
+				}).catch((e) => {
+					this.sendEvent(new OutputEvent(e, "stderr"));
+					// TODO: Remove - just debugging...
+					this.sendEvent(new InitializedEvent());
 				});
 			});
 		});
