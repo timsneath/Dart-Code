@@ -110,19 +110,19 @@ async function runTests(testFolder: string, workspaceFolder: string, sdkPaths: s
 }
 
 async function runAllTests(): Promise<void> {
-	const codeVersions = ["*"/*, "insiders"*/];
-	const sdkPaths = [process.env.PATH_STABLE || process.env.PATH/*, process.env.PATH_UNSTABLE*/].filter((p) => p);
+	const codeVersions = ["*", "insiders"];
+	const sdkPaths = [process.env.PATH_STABLE || process.env.PATH, process.env.PATH_UNSTABLE].filter((p) => p);
 	let runNumber = 1;
 	for (const codeVersion of codeVersions) {
 		for (const sdkPath of sdkPaths) {
 			// Allow failures from unstable builds (we'll still see results in build logs).
-			const allowFailures = true; // codeVersion === "insiders" || sdkPath === process.env.PATH_UNSTABLE;
+			const allowFailures = codeVersion === "insiders" || sdkPath === process.env.PATH_UNSTABLE;
 			const totalRuns = 5 * sdkPaths.length * codeVersions.length;
-			// await runTests("dart_only", "hello_world", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			await runTests("dart_only", "hello_world", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
 			await runTests("flutter_only", "flutter_hello_world", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
-			// await runTests("multi_root", "projects.code-workspace", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
-			// await runTests("multi_root_upgraded", "", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
-			// await runTests("not_activated/flutter_create", "empty", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			await runTests("multi_root", "projects.code-workspace", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			await runTests("multi_root_upgraded", "", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
+			await runTests("not_activated/flutter_create", "empty", sdkPath, codeVersion, allowFailures, `${runNumber++} of ${totalRuns}`);
 		}
 	}
 
