@@ -69,7 +69,7 @@ describe.only("flutter test debugger", () => {
 		]);
 	});
 
-	it.only("receives stderr for failing tests", async () => {
+	it.only("stops on exception", async () => {
 		await openFile(flutterTestBrokenFile);
 		const config = await configFor(flutterTestBrokenFile);
 		await Promise.all([
@@ -79,8 +79,7 @@ describe.only("flutter test debugger", () => {
 			dc.assertStoppedLocation("exception", {
 				line: positionOf("^won't find this").line,
 				path: flutterTestBrokenFile.fsPath,
-			}),
-			dc.waitForEvent("terminated"),
+			}).then((s) => dc.stop()),
 		]);
 	});
 
