@@ -75,17 +75,29 @@ beforeEach(async function () {
 	const logFolder = process.env.DC_TEST_LOGS || path.join(ext.extensionPath, ".dart_code_logs");
 	const prefix = filenameSafe(this.currentTest.fullTitle()) + "_";
 
-	const conf = vs.workspace.getConfiguration("dart", vs.workspace.workspaceFolders[0].uri);
-	const logFiles = ["observatory", "flutterRun", "flutterTest"];
+	setLogs(
+		vs.workspace.getConfiguration("dart"),
+		logFolder,
+		prefix,
+		["analyzer", "flutterDaemon"],
+	);
+	setLogs(
+		vs.workspace.getConfiguration("dart", vs.workspace.workspaceFolders[0].uri),
+		logFolder,
+		prefix,
+		["observatory", "flutterRun", "flutterTest"],
+	);
+});
+
+async function setLogs(conf: vs.WorkspaceConfiguration, logFolder: string, prefix: string, logFiles: string[]): Promise<void> {
 	for (const logFile of logFiles) {
 		const key = logFile + "LogFile";
 		const logPath = path.join(logFolder, `${prefix}${logFile}.txt`);
 		const oldValue = conf.get<string>(key);
-		console.log(`Setting ${key} to ${logPath}`);
 		await conf.update(key, logPath);
 		defer(async () => await conf.update(key, oldValue));
 	}
-});
+}
 
 export function setTestContent(content: string): Thenable<boolean> {
 	const all = new vs.Range(

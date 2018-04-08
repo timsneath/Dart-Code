@@ -2,18 +2,11 @@ import * as path from "path";
 import { workspace, WorkspaceConfiguration, version as codeVersion, Uri, ConfigurationTarget } from "vscode";
 import { versionIsAtLeast, resolveHomePath } from "./utils";
 
-// Gets a default log file based on an env variable; generally set in CI scripts.
-let logNum = 0;
-function getEnvLog(file: string) {
-	if (!process.env.DC_TEST_LOGS)
-		return;
-	return path.join(process.env.DC_TEST_LOGS, `${file}_${logNum++}.txt`);
-}
-
 class Config {
 	private config: WorkspaceConfiguration;
 
-	public get allowSilentExtensionRestart() { return !process.env.DC_TEST_LOGS; }
+	// Don't restart extension on config changes in tests
+	public get restartExtensionOnConfigChange() { return !process.env.DC_TEST_LOGS; }
 
 	constructor() {
 		workspace.onDidChangeConfiguration((e) => this.loadConfig());
@@ -37,13 +30,13 @@ class Config {
 	get analyzeAngularTemplates() { return this.getConfig<boolean>("analyzeAngularTemplates"); }
 	get analyzerDiagnosticsPort() { return this.getConfig<number>("analyzerDiagnosticsPort"); }
 	get analyzerObservatoryPort() { return this.getConfig<number>("analyzerObservatoryPort"); }
-	get analyzerLogFile() { return getEnvLog("analyzer") || resolveHomePath(this.getConfig<string>("analyzerLogFile")); }
+	get analyzerLogFile() { return resolveHomePath(this.getConfig<string>("analyzerLogFile")); }
 	get analyzerPath() { return resolveHomePath(this.getConfig<string>("analyzerPath")); }
 	get analyzerInstrumentationLogFile() { return resolveHomePath(this.getConfig<string>("analyzerInstrumentationLogFile")); }
 	get analyzerAdditionalArgs() { return this.getConfig<string[]>("analyzerAdditionalArgs"); }
 	get checkForSdkUpdates() { return this.getConfig<boolean>("checkForSdkUpdates"); }
 	get closingLabels() { return this.getConfig<boolean>("closingLabels"); }
-	get flutterDaemonLogFile() { return getEnvLog("flutter_daemon") || resolveHomePath(this.getConfig<string>("flutterDaemonLogFile")); }
+	get flutterDaemonLogFile() { return resolveHomePath(this.getConfig<string>("flutterDaemonLogFile")); }
 	get flutterHotReloadOnSave() { return this.getConfig<boolean>("flutterHotReloadOnSave"); }
 	get flutterSdkPath() { return resolveHomePath(this.getConfig<string>("flutterSdkPath")); }
 	public setFlutterSdkPath(value: string): Thenable<void> { return this.setConfig("flutterSdkPath", value, ConfigurationTarget.Workspace); }
