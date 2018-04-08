@@ -3,7 +3,6 @@ import * as path from "path";
 import * as fs from "fs";
 import * as vs from "vscode";
 import { DebugClient } from "vscode-debugadapter-testsupport";
-import { DebugProtocol } from "vscode-debugprotocol";
 import { activate, ext, closeAllOpenFiles, flutterHelloWorldMainFile, flutterTestMainFile, positionOf, flutterTestOtherFile, flutterTestBrokenFile, openFile } from "../../helpers";
 
 describe("flutter test debugger", () => {
