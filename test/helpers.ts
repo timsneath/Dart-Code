@@ -72,7 +72,7 @@ export function defer(callback: () => Promise<void> | void): void {
 // Set up log files for individual test logging.
 // tslint:disable-next-line:only-arrow-functions
 beforeEach(async function () {
-	const logFolder = process.env.DC_LOGS || path.join(ext.extensionPath, ".dart_code_logs");
+	const logFolder = process.env.DC_TEST_LOGS || path.join(ext.extensionPath, ".dart_code_logs");
 	const prefix = filenameSafe(this.currentTest.fullTitle()) + "_";
 
 	const conf = vs.workspace.getConfiguration("dart", vs.workspace.workspaceFolders[0].uri);

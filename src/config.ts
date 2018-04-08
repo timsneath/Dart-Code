@@ -5,13 +5,15 @@ import { versionIsAtLeast, resolveHomePath } from "./utils";
 // Gets a default log file based on an env variable; generally set in CI scripts.
 let logNum = 0;
 function getEnvLog(file: string) {
-	if (!process.env.DC_LOGS)
+	if (!process.env.DC_TEST_LOGS)
 		return;
-	return path.join(process.env.DC_LOGS, `${file}_${logNum++}.txt`);
+	return path.join(process.env.DC_TEST_LOGS, `${file}_${logNum++}.txt`);
 }
 
 class Config {
 	private config: WorkspaceConfiguration;
+
+	public get allowSilentExtensionRestart() { return !process.env.DC_TEST_LOGS; }
 
 	constructor() {
 		workspace.onDidChangeConfiguration((e) => this.loadConfig());

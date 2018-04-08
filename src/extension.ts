@@ -345,7 +345,7 @@ function handleConfigurationChange(sdks: util.Sdks) {
 		});
 	}
 
-	if (analyzerSettingsChanged) {
+	if (analyzerSettingsChanged && config.allowSilentExtensionRestart) {
 		util.reloadExtension();
 	}
 }

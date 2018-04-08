@@ -71,18 +71,18 @@ async function runTests(testFolder: string, workspaceFolder: string, sdkPaths: s
 	const codeFriendlyName = codeVersion === "*" ? "stable" : "insiders";
 
 	// Set some paths that are used inside the test run.
-	env.DC_LOGS = path.join(cwd, ".dart_code_logs", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}`);
+	env.DC_TEST_LOGS = path.join(cwd, ".dart_code_logs", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}`);
 	env.COVERAGE_OUTPUT = path.join(cwd, ".nyc_output", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}.json`);
 	env.TEST_XML_OUTPUT = path.join(cwd, ".test_results", `${testFolder.replace("/", "_")}_${dartFriendlyName}_${codeFriendlyName}.xml`);
-	console.log(`Logging to ${env.DC_LOGS}`);
+	console.log(`Logging to ${env.DC_TEST_LOGS}`);
 
 	// Ensure any necessary folders exist.
 	if (!fs.existsSync(".nyc_output"))
 		fs.mkdirSync(".nyc_output");
 	if (!fs.existsSync(".dart_code_logs"))
 		fs.mkdirSync(".dart_code_logs");
-	if (!fs.existsSync(env.DC_LOGS))
-		fs.mkdirSync(env.DC_LOGS);
+	if (!fs.existsSync(env.DC_TEST_LOGS))
+		fs.mkdirSync(env.DC_TEST_LOGS);
 
 	let res = await runNode(cwd, args, env);
 	if (!allowFailures)
