@@ -69,6 +69,22 @@ export function defer(callback: () => Promise<void> | void): void {
 	deferredItems.push(callback);
 }
 
+// Set up log files for individual test logging.
+// tslint:disable-next-line:only-arrow-functions
+beforeEach(async function () {
+	const logFolder = process.env.DC_LOGS || path.join(ext.extensionPath, ".dart_code_logs");
+	const prefix = filenameSafe(this.currentTest.fullTitle()) + "_";
+
+	const conf = vs.workspace.getConfiguration("dart");
+	const logFiles = ["observatory", "flutterRun", "flutterTest"];
+	for (const logFile of logFiles) {
+		const key = logFile + "LogFile";
+		const oldValue = conf.get<string>(key);
+		await conf.update(key, path.join(logFolder, `${prefix}${logFile}.txt`));
+		defer(async () => await conf.update(key, oldValue));
+	}
+});
+
 export function setTestContent(content: string): Thenable<boolean> {
 	const all = new vs.Range(
 		doc.positionAt(0),
@@ -233,4 +249,8 @@ export async function waitForEditorChange(action: () => Thenable<void>): Promise
 	const oldVersion = doc.version;
 	await action();
 	await waitFor(() => doc.version !== oldVersion);
+}
+
+export function filenameSafe(input: string) {
+	return input.replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 }

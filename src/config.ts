@@ -95,9 +95,9 @@ class ResourceConfig {
 	get lineLength() { return this.getConfig<number>("lineLength"); }
 	get pubAdditionalArgs() { return this.getConfig<string[]>("pubAdditionalArgs"); }
 	get runPubGetOnPubspecChanges() { return this.getConfig<boolean>("runPubGetOnPubspecChanges"); }
-	get flutterRunLogFile() { return getEnvLog("flutter_run") || resolveHomePath(this.getConfig<string>("flutterRunLogFile")); }
-	get flutterTestLogFile() { return getEnvLog("flutter_test") || resolveHomePath(this.getConfig<string>("flutterTestLogFile")); }
-	get observatoryLogFile() { return getEnvLog("observatory") || resolveHomePath(this.getConfig<string>("observatoryLogFile")); }
+	get flutterRunLogFile() { return resolveHomePath(this.getConfig<string>("flutterRunLogFile")); }
+	get flutterTestLogFile() { return resolveHomePath(this.getConfig<string>("flutterTestLogFile")); }
+	get observatoryLogFile() { return resolveHomePath(this.getConfig<string>("observatoryLogFile")); }
 	get promptToGetPackages() { return this.getConfig<boolean>("promptToGetPackages"); }
 	get vmAdditionalArgs() { return this.getConfig<string[]>("vmAdditionalArgs"); }
 	get promptToUpgradeWorkspace() { return this.getConfig<boolean>("promptToUpgradeWorkspace"); }
